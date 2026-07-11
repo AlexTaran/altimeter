@@ -21,6 +21,11 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.alextaran.altimeter.storage.AltitudePoint
+import net.alextaran.altimeter.storage.AppDatabase
 
 class AltimeterService : Service() {
 
@@ -33,6 +38,7 @@ class AltimeterService : Service() {
     }
 
     private lateinit var locationManager: LocationManager
+    private lateinit var database: AppDatabase
 
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -40,6 +46,11 @@ class AltimeterService : Service() {
             if (location.hasAltitude()) {
                 val altitude = location.altitude.toInt().toString()
                 updateNotification(altitude, location.time)
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val point = AltitudePoint(timestamp = location.time, altitude = location.altitude)
+                    database.altitudeDao().insertPoint(point)
+                }
             } else {
                 updateNotification(getString(R.string.status_no_alt), location.time)
             }
@@ -54,6 +65,7 @@ class AltimeterService : Service() {
     override fun onCreate() {
         super.onCreate()
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        database = AppDatabase.getDatabase(this)
         createNotificationChannel()
     }
 
