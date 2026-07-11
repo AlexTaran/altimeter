@@ -11,17 +11,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.Typeface
+import android.graphics.drawable.Icon
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.graphics.drawable.IconCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class AltimeterService : Service() {
@@ -112,7 +109,7 @@ class AltimeterService : Service() {
     }
 
     private fun buildNotification(text: String, time: Long): Notification {
-        val icon = createTextIcon(text)
+        val icon = createAltimeterIcon() // createTextIcon(text)
         
         val contentText = if (text.toIntOrNull() != null) {
             getString(R.string.notification_current_altitude, text)
@@ -120,14 +117,20 @@ class AltimeterService : Service() {
             getString(R.string.notification_status, text)
         }
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val chipText = if (text.toIntOrNull() != null) "${text} m" else text
+
+        return Notification.Builder(this, CHANNEL_ID)
+            .setOnlyAlertOnce(true)
             .setContentTitle(getString(R.string.notification_title))
             .setContentText(contentText)
             .setSmallIcon(icon)
             .setOngoing(true)
             .setWhen(time)
             .setShowWhen(true)
-            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+            .setShortCriticalText(chipText)
+            .setRequestPromotedOngoing(true)
+            //.setStyle(Notification.ProgressStyle())
             .build()
     }
 
@@ -136,7 +139,7 @@ class AltimeterService : Service() {
         manager.notify(NOTIFICATION_ID, buildNotification(text, time))
     }
 
-    private fun createTextIcon(text: String): IconCompat {
+    private fun createTextIcon(text: String): Icon {
         val size = 96 
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -159,6 +162,45 @@ class AltimeterService : Service() {
         
         canvas.drawText(text, xPos, yPos, textPaint)
 
-        return IconCompat.createWithBitmap(bitmap)
+        return Icon.createWithBitmap(bitmap)
+    }
+
+    private fun createAltimeterIcon(): Icon {
+        val size = 96
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+
+        val bigMountain = android.graphics.Path().apply {
+            moveTo(40f, 20f)
+            lineTo(80f, 80f)
+            lineTo(0f, 80f)
+            close()
+        }
+        canvas.drawPath(bigMountain, paint)
+
+        paint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+        val cutout = android.graphics.Path().apply {
+            moveTo(68f, 40f)
+            lineTo(96f, 82f)
+            lineTo(40f, 82f)
+            close()
+        }
+        canvas.drawPath(cutout, paint)
+
+        paint.xfermode = null
+        val smallMountain = android.graphics.Path().apply {
+            moveTo(68f, 40f)
+            lineTo(96f, 80f)
+            lineTo(40f, 80f)
+            close()
+        }
+        canvas.drawPath(smallMountain, paint)
+
+        return Icon.createWithBitmap(bitmap)
     }
 }

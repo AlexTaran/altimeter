@@ -6,13 +6,15 @@ plugins {
 
 android {
     namespace = "net.alextaran.altimeter"
+    //compileSdk = 37
+    //compileSdkExtension = 1
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
         applicationId = "net.alextaran.altimeter"
-        minSdk = 35
+        minSdk = 36
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
