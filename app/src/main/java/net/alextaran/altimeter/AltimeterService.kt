@@ -3,6 +3,7 @@ package net.alextaran.altimeter
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -26,6 +27,8 @@ class AltimeterService : Service() {
     companion object {
         private const val CHANNEL_ID = "AltimeterChannel"
         private const val NOTIFICATION_ID = 1
+        private const val ACTION_STOP_SERVICE = "net.alextaran.altimeter.ACTION_STOP_SERVICE"
+
         val isRunning = MutableStateFlow(false)
     }
 
@@ -55,6 +58,11 @@ class AltimeterService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP_SERVICE) {
+            Log.d("AltimeterService", "Stop action received via notification button")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         Log.d("AltimeterService", "onStartCommand called")
         isRunning.value = true
         val notification = buildNotification(getString(R.string.status_wait), System.currentTimeMillis())
@@ -109,6 +117,18 @@ class AltimeterService : Service() {
     }
 
     private fun buildNotification(text: String, time: Long): Notification {
+        val activityIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val stopIntent = Intent(this, AltimeterService::class.java).apply {
+            action = ACTION_STOP_SERVICE
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         val icon = createAltimeterIcon() // createTextIcon(text)
         
         val contentText = if (text.toIntOrNull() != null) {
@@ -123,6 +143,8 @@ class AltimeterService : Service() {
             .setOnlyAlertOnce(true)
             .setContentTitle(getString(R.string.notification_title))
             .setContentText(contentText)
+            .setContentIntent(contentPendingIntent)
+            .addAction(Notification.Action.Builder(Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel), getString(R.string.action_stop_altimeter), stopPendingIntent).build())
             .setSmallIcon(icon)
             .setOngoing(true)
             .setWhen(time)
