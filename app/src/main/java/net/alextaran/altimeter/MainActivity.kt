@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val isServiceRunning by AltimeterService.isRunning.collectAsState()
+                        val allPermissionsGranted = requiredPermissions.all { permissionStates[it] == true }
 
                         Box(
                             modifier = Modifier
@@ -130,6 +131,7 @@ class MainActivity : ComponentActivity() {
                                         context.startForegroundService(intent)
                                     }
                                 },
+                                enabled = isServiceRunning || allPermissionsGranted,
                                 modifier = Modifier
                                     .height(100.dp)
                                     .fillMaxWidth(0.5f)
