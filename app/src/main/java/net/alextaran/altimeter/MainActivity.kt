@@ -143,6 +143,32 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        if (!allPermissionsGranted) {
+                            Button(
+                                onClick = {
+                                    val fineGranted = permissionStates[Manifest.permission.ACCESS_FINE_LOCATION] == true
+                                    val notifGranted = permissionStates[Manifest.permission.POST_NOTIFICATIONS] == true
+
+                                    if (!fineGranted || !notifGranted) {
+                                        permissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.POST_NOTIFICATIONS
+                                            )
+                                        )
+                                    } else {
+                                        bgLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(stringResource(R.string.btn_action_give_permissions))
+                            }
+                        }
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()

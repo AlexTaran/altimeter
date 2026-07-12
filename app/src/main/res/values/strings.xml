@@ -3,6 +3,7 @@
     <string name="action_start_altimeter">Start Altimeter</string>
     <string name="action_stop_altimeter">Stop Altimeter</string>
     <string name="title_permissions_status">Permissions Status:</string>
+    <string name="btn_action_give_permissions">Give permissions</string>
     <string name="status_enabled">ENABLED</string>
     <string name="status_disabled">DISABLED</string>
     <string name="status_wait">Wait</string>
