@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.alextaran.altimeter.storage.AltitudePoint
 import net.alextaran.altimeter.storage.AppDatabase
+import net.alextaran.altimeter.widget.AltimeterWidgetProvider
 
 class AltimeterService : Service() {
 
@@ -89,6 +90,7 @@ class AltimeterService : Service() {
         }
         Log.d("AltimeterService", "onStartCommand called")
         isRunning.value = true
+        AltimeterWidgetProvider.updateAllWidgets(this)
         val notification =
                 buildNotification(getString(R.string.status_wait), System.currentTimeMillis())
 
@@ -124,6 +126,7 @@ class AltimeterService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         isRunning.value = false
+        AltimeterWidgetProvider.updateAllWidgets(this)
         locationManager.removeUpdates(locationListener)
     }
 
