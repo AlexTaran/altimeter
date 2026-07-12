@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
                     listOf(
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                         Manifest.permission.POST_NOTIFICATIONS
                     )
                 }
@@ -67,10 +68,19 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                val permissionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestMultiplePermissions()
+                val bgLocationLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission()
                 ) { _ ->
                     updatePermissions()
+                }
+
+                val permissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestMultiplePermissions()
+                ) { results ->
+                    updatePermissions()
+                    if (results[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+                        bgLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    }
                 }
 
                 DisposableEffect(lifecycleOwner) {
@@ -86,7 +96,13 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    permissionLauncher.launch(requiredPermissions.toTypedArray())
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        )
+                    )
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
