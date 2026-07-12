@@ -14,32 +14,36 @@ import net.alextaran.altimeter.R
 class AltimeterWidgetProvider : AppWidgetProvider() {
 
     companion object {
+        // Возвращаем нашу константу
         const val ACTION_TOGGLE = "net.alextaran.altimeter.WIDGET_TOGGLE"
 
-        // Этот метод будет обновлять текст на кнопках всех добавленных виджетов
         fun updateAllWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val componentName = ComponentName(context, AltimeterWidgetProvider::class.java)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
 
-            // Читаем текущее состояние из сервиса
             val isRunning = AltimeterService.isRunning.value
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_simple)
 
-                // Меняем текст кнопки в зависимости от статуса
-                views.setTextViewText(
-                        R.id.btn_widget_toggle,
-                        if (isRunning) context.getString(R.string.action_stop_altimeter)
-                        else context.getString(R.string.action_start_altimeter)
+                // Настраиваем текст статуса (новый дизайн)
+                views.setTextViewText(R.id.tv_widget_status, if (isRunning) "STOP" else "START")
+
+                // Красим текст статуса (новый дизайн)
+                views.setTextColor(
+                        R.id.tv_widget_status,
+                        if (isRunning) android.graphics.Color.parseColor("#E57373")
+                        else android.graphics.Color.parseColor("#81C784")
                 )
 
-                // Настраиваем клик по кнопке
+                // ВАЖНО: Возвращаем старый Интент, который бьет в сам виджет!
                 val intent =
                         Intent(context, AltimeterWidgetProvider::class.java).apply {
                             action = ACTION_TOGGLE
                         }
+
+                // Возвращаем старый getBroadcast
                 val pendingIntent =
                         PendingIntent.getBroadcast(
                                 context,
@@ -47,7 +51,9 @@ class AltimeterWidgetProvider : AppWidgetProvider() {
                                 intent,
                                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                         )
-                views.setOnClickPendingIntent(R.id.btn_widget_toggle, pendingIntent)
+
+                // Вешаем клик на ВЕСЬ виджет целиком (как в новом дизайне)
+                views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
@@ -62,19 +68,21 @@ class AltimeterWidgetProvider : AppWidgetProvider() {
         updateAllWidgets(context)
     }
 
+    // Возвращаем старый рабочий обработчик кликов
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        // Обрабатываем клик по виджету
         if (intent.action == ACTION_TOGGLE) {
             val serviceIntent = Intent(context, AltimeterService::class.java)
 
+            // Запускаем или останавливаем сервис в зависимости от текущего состояния
             if (AltimeterService.isRunning.value) {
                 context.stopService(serviceIntent)
             } else {
                 ContextCompat.startForegroundService(context, serviceIntent)
             }
-            // Сразу обновляем UI виджета для отзывчивости
+
+            // Сразу обновляем UI виджета
             updateAllWidgets(context)
         }
     }

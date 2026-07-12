@@ -1,14 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:gravity="center"
-    android:background="@android:color/transparent">
+    android:background="@drawable/widget_bg_rounded"
+    android:padding="4dp">
 
-    <Button
-        android:id="@+id/btn_widget_toggle"
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/action_start_altimeter"
-        android:textSize="12sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:src="@drawable/ic_mountain"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Altimeter"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/tv_widget_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="START"
+        android:textColor="#81C784"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:layout_marginTop="2dp" />
+
 </LinearLayout>
