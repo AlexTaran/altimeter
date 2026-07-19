@@ -40,6 +40,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import net.alextaran.altimeter.storage.AppDatabase
+import net.alextaran.altimeter.ui.AltitudeChart
 import net.alextaran.altimeter.ui.theme.AltimeterTheme
 
 class MainActivity : ComponentActivity() {
@@ -115,9 +117,9 @@ class MainActivity : ComponentActivity() {
                         val isServiceRunning by AltimeterService.isRunning.collectAsState()
                         val allPermissionsGranted = requiredPermissions.all { permissionStates[it] == true }
 
+                        // Start/Stop button
                         Box(
                             modifier = Modifier
-                                .weight(1f)
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             contentAlignment = Alignment.TopStart
@@ -142,6 +144,37 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+
+                        // Altitude chart — last 2 hours
+                        val db = remember { AppDatabase.getDatabase(context) }
+                        val windowEndMs = remember { System.currentTimeMillis() }
+                        val windowStartMs = remember { windowEndMs - 2 * 60 * 60 * 1000L }
+                        val altitudePoints by db.altitudeDao().getPointsSince(windowStartMs)
+                            .collectAsState(initial = emptyList())
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = "Altitude — last 2 hours",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            AltitudeChart(
+                                points = altitudePoints,
+                                windowStartMs = windowStartMs,
+                                windowEndMs = windowEndMs,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                            )
+                        }
+
+                        // Add a weighted spacer to push permissions section to the bottom of the screen
+                        Spacer(modifier = Modifier.weight(1f))
 
                         if (!allPermissionsGranted) {
                             Button(
