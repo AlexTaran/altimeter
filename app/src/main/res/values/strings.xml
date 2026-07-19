@@ -10,6 +10,7 @@
     <string name="status_no_alt">No Alt</string>
     <string name="notification_current_altitude"><![CDATA[Current altitude: <b>%1$s m</b><br>Last Updated: <b>%2$s</b>]]></string>
     <string name="notification_status">Status: %1$s</string>
+    <string name="notification_chip_altitude">%1$s m</string>
     <string name="channel_name">Altimeter Service</string>
     <string name="notification_title">Altimeter</string>
 </resources>

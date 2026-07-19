@@ -12,7 +12,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Typeface
 import android.graphics.drawable.Icon
 import android.location.Location
 import android.location.LocationListener
@@ -166,7 +165,7 @@ class AltimeterService : Service() {
                         stopIntent,
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 )
-        val icon = createAltimeterIcon() // createTextIcon(text)
+        val icon = createAltimeterIcon()
 
         val timeFormatted = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
 
@@ -179,7 +178,7 @@ class AltimeterService : Service() {
                     getString(R.string.notification_status, text)
                 }
 
-        val chipText = if (text.toIntOrNull() != null) "${text} m" else text
+        val chipText = if (text.toIntOrNull() != null) getString(R.string.notification_chip_altitude, text) else text
 
         return Notification.Builder(this, CHANNEL_ID)
                 .setOnlyAlertOnce(true)
@@ -211,33 +210,6 @@ class AltimeterService : Service() {
     private fun updateNotification(text: String, time: Long) {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(NOTIFICATION_ID, buildNotification(text, time))
-    }
-
-    private fun createTextIcon(text: String): Icon {
-        val size = 96
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        val textPaint =
-                Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.WHITE
-                    textSize = 72f
-                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                    textAlign = Paint.Align.CENTER
-                }
-
-        val textWidth = textPaint.measureText(text)
-        val maxWidth = size.toFloat()
-        if (textWidth > maxWidth) {
-            textPaint.textScaleX = maxWidth / textWidth
-        }
-
-        val xPos = canvas.width / 2f
-        val yPos = (canvas.height / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
-
-        canvas.drawText(text, xPos, yPos, textPaint)
-
-        return Icon.createWithBitmap(bitmap)
     }
 
     private fun createAltimeterIcon(): Icon {
